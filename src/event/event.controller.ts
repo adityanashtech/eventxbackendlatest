@@ -9,7 +9,7 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Event } from "./event.entity";
 import {
   createEventSwagger,
@@ -25,6 +25,7 @@ import { AuthGuard } from "../user/auth.guard";
 import { UserEvent } from "../user-event/user-event.entity";
 import { EventService } from "./event.service";
 
+@ApiBearerAuth()
 @Controller("events")
 @ApiTags("events")
 @UseGuards(AuthGuard)

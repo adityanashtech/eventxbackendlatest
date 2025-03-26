@@ -9,6 +9,7 @@ import {
   ApiResponse,
   ApiQuery,
   ApiBearerAuth,
+  ApiOkResponse,
 } from "@nestjs/swagger";
 import { CreateEventDto, UpdateEventDto } from "./events.dto";
 
@@ -170,17 +171,13 @@ export const getEventsByStatusSwagger = () => {
   return applyDecorators(
     ApiTags("events"),
     ApiOperation({ summary: "Get events by status" }),
-    ApiHeader({
-      name: "token",
-      description: "JWT token for authentication",
-      required: false,
-    }),
     ApiBearerAuth(),
     ApiQuery({
-      name: "type",
+      name: "status",
       enum: ["past", "current", "trending", "upcoming"],
       description: "Type of events to fetch",
     }),
+    ApiOkResponse({ description: "Successfully fetched events" }),
     ApiBadRequestResponse({ description: "Invalid input data" })
   );
 };
