@@ -16,14 +16,14 @@ import { EventModule } from "./event/event.module";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ envFilePath: ".dev.env", isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: "postgres",
-      host: "eventx.cj6coymwuw89.eu-north-1.rds.amazonaws.com",
-      port: 5432,
-      username: "postgres",
-      password: "india0192",
-      database: "eventx",
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       entities: [Event, User, UserEvent],
       synchronize: true,
       ssl: {
