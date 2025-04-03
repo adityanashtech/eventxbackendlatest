@@ -13,6 +13,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { MailSender } from "./mailSender";
 import { ConfigModule } from "@nestjs/config";
 import { EventModule } from "./event/event.module";
+import { UserModule } from "./user/user.module";
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { EventModule } from "./event/event.module";
     }),
     TypeOrmModule.forFeature([Event, User, UserEvent]),
     AdminModule,
+    UserModule,
     EventModule,
     UserEventModule,
     JwtModule.register({
