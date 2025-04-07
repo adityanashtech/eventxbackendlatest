@@ -20,13 +20,13 @@ export class MailSender {
     });
   }
 
-  async sendMail(to: string, subject: string, text: string) {
+  async sendMail(to: string, subject: string, html: string) {
     try {
       const info = await this.transporter.sendMail({
-        from: process.env.GMAIL_USER,
+        from: "no-reply@eventx.com",
         to,
         subject,
-        text,
+        html,
       });
       console.log("Message sent: %s", info.messageId);
     } catch (error) {
@@ -36,7 +36,11 @@ export class MailSender {
 
   async sendResetPasswordEmail(email: string, token: string) {
     const resetLink = `eventx://reset-password?token=${token}`;
-    const message = `Please use the given token to reset your password: ${resetLink}`;
+    const message = `
+    <p>You requested to reset your password.
+    <h2>Token: ${token}</h2>
+    <p>If you didn’t request this, ignore this email.</p>
+  `;
 
     await this.sendMail(email, "Reset Your Password", message);
   }

@@ -40,7 +40,7 @@ export class UserService {
 
     const { error, value } = schema.validate(userData);
     if (error) {
-      return { statusCode: 400, message: error.details[0].message };
+      throw new HttpException(error.details[0].message, HttpStatus.BAD_REQUEST);
     }
 
     const { name, email, phone, password, role, age } = value;
@@ -48,10 +48,10 @@ export class UserService {
       where: { email },
     });
     if (existingUser) {
-      return {
-        statusCode: 400,
-        message: "User with this email already exists",
-      };
+      throw new HttpException(
+        "User with this email already exists",
+        HttpStatus.BAD_REQUEST
+      );
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -82,7 +82,7 @@ export class UserService {
     message: string;
     access_token?: string;
     data?: any;
-    statuscode: number;
+    statusCode: number;
   }> {
     const schema = Joi.object({
       email: Joi.string().email().required(),
@@ -91,21 +91,18 @@ export class UserService {
 
     const { error, value } = schema.validate(credentials);
     if (error) {
-      return { statuscode: 400, message: error.details[0].message };
+      throw new HttpException(error.details[0].message, HttpStatus.BAD_REQUEST);
     }
 
     const { email, password } = value;
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      return {
-        statuscode: 422,
-        message: "User with this email does not exist.",
-      };
+      throw new NotFoundException("User does not exist.");
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return { statuscode: 401, message: "Invalid Password." };
+      throw new HttpException("Invalid Password", HttpStatus.UNAUTHORIZED);
     }
 
     delete user.password;
@@ -113,7 +110,7 @@ export class UserService {
     const access_token = await this.jwtService.signAsync(payload);
 
     return {
-      statuscode: 200,
+      statusCode: 200,
       message: "Login successful",
       access_token,
       data: user,
@@ -162,7 +159,7 @@ export class UserService {
 
     const { error } = schema.validate(userData);
     if (error) {
-      return { statusCode: 400, message: error.details[0].message };
+      throw new HttpException(error.details[0].message, HttpStatus.BAD_REQUEST);
     }
 
     const user = await this.userRepository.findOne({ where: { id } });
