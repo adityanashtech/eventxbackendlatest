@@ -38,8 +38,8 @@ import { UserModule } from "./user/user.module";
     UserEventModule,
     JwtModule.register({
       global: true,
-      secret: "qwertyuiopasdfghjklzxcvbnm123456",
-      signOptions: { expiresIn: "600s" },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
     }),
   ],
   controllers: [AppController, EventController, UserController],

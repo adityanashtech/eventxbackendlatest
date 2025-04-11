@@ -45,7 +45,7 @@ export class UserService {
 
     const { name, email, phone, password, role, age } = value;
     const existingUser = await this.userRepository.findOne({
-      where: { email },
+      where: { email: email.toLowerCase() },
     });
     if (existingUser) {
       throw new HttpException(
@@ -57,7 +57,7 @@ export class UserService {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = this.userRepository.create({
       name,
-      email,
+      email: email.toLowerCase(),
       phone,
       password: hashedPassword,
       role: role.toLowerCase(),
@@ -95,7 +95,9 @@ export class UserService {
     }
 
     const { email, password } = value;
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({
+      where: { email: email.toLowerCase() },
+    });
     if (!user) {
       throw new NotFoundException("User does not exist.");
     }
@@ -167,7 +169,7 @@ export class UserService {
       throw new HttpException("User not found", HttpStatus.NOT_FOUND);
     }
 
-    Object.assign(user, userData);
+    Object.assign(user, { ...userData, email: userData.email.toLowerCase() });
     const updatedUser = await this.userRepository.save(user);
     delete updatedUser.password;
 
@@ -202,7 +204,9 @@ export class UserService {
   }
 
   async forgotPassword(email: string) {
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({
+      where: { email: email.toLowerCase() },
+    });
     if (!user) {
       throw new NotFoundException("User not found");
     }
