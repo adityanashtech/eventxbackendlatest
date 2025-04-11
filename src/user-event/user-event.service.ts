@@ -69,13 +69,6 @@ export class UserEventService {
       relations: ["event"],
     });
 
-    // if (count === 0) {
-    //   throw new NotFoundException(
-    //     `No events found for user with ID ${user_id}`
-    //   );
-    // }
-    // const events = userEvents.map((userEvent) => userEvent.event);
-
     const now = new Date();
 
     const filteredEvents = userEvents
@@ -103,7 +96,7 @@ export class UserEventService {
         users: user,
         event: filteredEvents,
         totalEventsCount: filteredEvents.length,
-        status: status
+        status: status,
       },
     };
   }
