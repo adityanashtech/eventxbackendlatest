@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
 import {
   IsString,
   IsNotEmpty,
@@ -6,7 +6,10 @@ import {
   IsDate,
   IsBoolean,
   IsOptional,
+  IsEnum,
+  isNotEmpty,
 } from "class-validator";
+import { ApprovalStatus } from "./event.entity";
 
 export class CreateEventDto {
   @ApiProperty()
@@ -46,7 +49,8 @@ export class CreateEventDto {
 
   @ApiProperty({ required: false })
   @IsString()
-  readonly image: string;
+  @IsOptional()
+  readonly image?: string;
 
   @ApiProperty()
   @IsNumber()
@@ -59,59 +63,14 @@ export class CreateEventDto {
   readonly trending: boolean;
 }
 
-export class UpdateEventDto {
-  @ApiProperty({ required: false })
-  @IsString()
-  @IsOptional()
-  readonly event_name?: string;
-
-  @ApiProperty({ required: false })
-  @IsString()
-  @IsOptional()
-  readonly location?: string;
-
-  @ApiProperty({ required: false })
-  @IsDate()
-  @IsOptional()
-  readonly event_start_date?: Date;
-
-  @ApiProperty({ required: false })
-  @IsDate()
-  @IsOptional()
-  readonly event_end_date?: Date;
-
-  @ApiProperty({ required: false })
-  @IsString()
-  @IsOptional()
-  readonly description?: string;
-
-  @ApiProperty({ required: false })
-  @IsString()
-  @IsOptional()
-  readonly user_type?: string;
-
-  @ApiProperty({ required: false })
-  @IsString()
-  @IsNotEmpty()
-  readonly event_type: string;
-
-  @ApiProperty({ required: false })
-  @IsString()
-  @IsNotEmpty()
-  readonly image: string;
-
-  @ApiProperty({ required: false })
-  @IsString()
-  @IsOptional()
-  readonly status?: string;
-
-  @ApiProperty({ required: false })
-  @IsNumber()
-  @IsOptional()
-  readonly registration_fee?: number;
-
+export class UpdateEventDto extends PartialType(CreateEventDto) {
   @ApiProperty({ required: false })
   @IsBoolean()
   @IsOptional()
-  readonly trending?: boolean;
+  readonly status?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsEnum(ApprovalStatus)
+  @IsOptional()
+  readonly approval?: ApprovalStatus;
 }

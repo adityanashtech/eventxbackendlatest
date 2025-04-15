@@ -15,7 +15,7 @@ import {
   getUserEventsSwagger,
   getEventUsersSwagger,
 } from "./user-event.swagger";
-import { AuthGuard } from "../user/auth.guard";
+import { AuthGuard } from "../user/guards/auth.guard";
 
 @Controller("user-event")
 @UseGuards(AuthGuard)

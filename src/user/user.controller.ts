@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { AuthGuard } from "./auth.guard";
+import { AuthGuard } from "./guards/auth.guard";
 import { UserService } from "./user.service";
 import {
   createUserSwagger,
