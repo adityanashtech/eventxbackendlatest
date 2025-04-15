@@ -1,4 +1,10 @@
-import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  UnauthorizedException,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Repository,
@@ -15,6 +21,7 @@ import * as Joi from "joi";
 import { isBefore, isValid, startOfDay } from "date-fns";
 import * as fs from "fs";
 import * as path from "path";
+import { CreateEventDto, UpdateEventDto } from "./events.dto";
 
 @Injectable()
 export class EventService {
@@ -26,7 +33,7 @@ export class EventService {
     private readonly userEventRepository: Repository<UserEvent>
   ) {}
 
-  async createEvent(eventData) {
+  async createEvent(eventData: CreateEventDto) {
     const schema = Joi.object({
       user_id: Joi.number().required(),
       event_name: Joi.string().required(),
@@ -163,14 +170,15 @@ export class EventService {
 
   async updateEvent(
     eventId: number,
-    updateData: Partial<Event>
+    updateData: UpdateEventDto,
+    isAdmin: boolean
   ): Promise<{ message: string; event?: Event; statusCode: number }> {
     const existingEvent = await this.eventRepository.findOne({
       where: { id: eventId },
     });
 
     if (!existingEvent) {
-      return { statusCode: 404, message: "Event not found" };
+      throw new NotFoundException("Event not found");
     }
 
     const { event_start_date, event_end_date } = updateData;
@@ -181,20 +189,17 @@ export class EventService {
       (event_start_date && !isValid(new Date(event_start_date))) ||
       (event_end_date && !isValid(new Date(event_end_date)))
     ) {
-      return {
-        statusCode: 422,
-        message: "Enter valid dates",
-      };
+      throw new HttpException("Enter valid dates", HttpStatus.BAD_REQUEST);
     }
 
     if (
       event_start_date &&
       isBefore(startOfDay(new Date(event_start_date)), startOfDay(currentDate))
     ) {
-      return {
-        statusCode: 422,
-        message: "Event start date cannot be in the past",
-      };
+      throw new HttpException(
+        "Event start date cannot be in the past",
+        HttpStatus.BAD_REQUEST
+      );
     }
 
     if (
@@ -202,14 +207,26 @@ export class EventService {
       event_start_date &&
       isBefore(new Date(event_end_date), new Date(event_start_date))
     ) {
-      return {
-        statusCode: 422,
-        message: "Event end date cannot be earlier than start date",
-      };
+      throw new HttpException(
+        "Event end date cannot be earlier than start date",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    if (!isAdmin && "approval" in updateData) {
+      throw new HttpException(
+        "Forbidden. Only admin can access this.",
+        HttpStatus.FORBIDDEN
+      );
     }
 
     try {
-      await this.eventRepository.update(eventId, updateData);
+      const filteredUpdateData = isAdmin
+        ? updateData
+        : Object.fromEntries(
+            Object.entries(updateData).filter(([key]) => key !== "approval")
+          );
+      await this.eventRepository.update(eventId, filteredUpdateData);
       const updatedEvent = await this.eventRepository.findOne({
         where: { id: eventId },
       });

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserEventController } from './user-event.controller';
 import { UserEventService } from './user-event.service';
-import { AuthGuard } from '../user/auth.guard'
+import { AuthGuard } from '../user/guards/auth.guard'
 
 describe('UserEventController', () => {
   let controller: UserEventController;
