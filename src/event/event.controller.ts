@@ -20,6 +20,7 @@ import {
   searchEventsSwagger,
   getEventTypeSwagger,
   getEventsByStatusSwagger,
+  findEventsSwagger,
 } from "./event.swagger";
 import { AuthGuard } from "../user/guards/auth.guard";
 import { UserEvent } from "../user-event/user-event.entity";
@@ -67,6 +68,15 @@ export class EventController {
   @getEventTypeSwagger()
   async getEventTypes() {
     return this.eventService.getEventTypes();
+  }
+
+  @Get("find")
+  @findEventsSwagger()
+  async findEvents(
+    @Query("keyword") keyword?: string,
+    @Query("type") type?: "trending" | "upcoming"
+  ) {
+    return this.eventService.findEvents(keyword, type);
   }
 
   @Get(":id?")
