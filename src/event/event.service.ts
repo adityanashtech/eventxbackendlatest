@@ -4,6 +4,7 @@ import {
   HttpStatus,
   UnauthorizedException,
   NotFoundException,
+  BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
@@ -309,6 +310,58 @@ export class EventService {
       message: "Events found successfully",
       data: events,
     };
+  }
+
+  async findEvents(
+    keyword?: string,
+    type?: "trending" | "upcoming"
+  ): Promise<{
+    statusCode: number;
+    message: string;
+    data?: Event[];
+  }> {
+    try {
+      if (type && type !== "trending" && type !== "upcoming") {
+        throw new BadRequestException(
+          `Invalid type: '${type}'. Allowed values are 'trending' or 'upcoming'.`
+        );
+      }
+      const query = this.eventRepository.createQueryBuilder("event");
+
+      query.where("event.event_start_date >= CURRENT_DATE");
+
+      if (keyword) {
+        query.andWhere(
+          `(event.event_name ILIKE :keyword OR event.location ILIKE :keyword OR event.event_type ILIKE :keyword)`,
+          { keyword: `%${keyword}%` }
+        );
+      }
+
+      if (type === "trending") {
+        query.andWhere("event.trending = :trending", { trending: true });
+      }
+
+      if (type === "upcoming") {
+        query.andWhere("event.event_start_date > CURRENT_DATE");
+      }
+
+      query.orderBy("event.event_start_date", "ASC");
+
+      const events = await query.getMany();
+
+      return {
+        statusCode: 200,
+        message: "Fetched upcoming events successfully",
+        data: events,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+
+      throw new HttpException(
+        "An error occurred while searching for events.",
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 
   async getEventsByStatus(type: string): Promise<{

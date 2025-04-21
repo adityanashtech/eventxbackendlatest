@@ -10,6 +10,7 @@ import {
   ApiQuery,
   ApiBearerAuth,
   ApiOkResponse,
+  ApiInternalServerErrorResponse,
 } from "@nestjs/swagger";
 import { CreateEventDto, UpdateEventDto } from "./events.dto";
 
@@ -179,5 +180,32 @@ export const getEventsByStatusSwagger = () => {
     }),
     ApiOkResponse({ description: "Successfully fetched events" }),
     ApiBadRequestResponse({ description: "Invalid input data" })
+  );
+};
+
+export const findEventsSwagger = () => {
+  return applyDecorators(
+    ApiTags("events"),
+    ApiOperation({
+      summary: "Find events by keyword (name, genre, location)",
+    }),
+    ApiBearerAuth(),
+    ApiQuery({
+      name: "keyword",
+      required: false,
+      description: "Keyword to fetch events",
+    }),
+    ApiQuery({
+      name: "type",
+      required: false,
+      description: "Filter events by type (trending/upcoming)",
+      enum: ["trending", "upcoming"],
+      example: "trending",
+    }),
+    ApiOkResponse({ description: "Successfully fetched events" }),
+    ApiBadRequestResponse({ description: "Invalid type of event." }),
+    ApiInternalServerErrorResponse({
+      description: "An error occurred while searching for events.",
+    })
   );
 };
