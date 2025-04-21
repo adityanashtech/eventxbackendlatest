@@ -108,7 +108,7 @@ export class UserService {
     }
 
     delete user.password;
-    const payload = { sub: user.id, username: user.email };
+    const payload = { sub: user.id, username: user.email, role: user.role };
     const access_token = await this.jwtService.signAsync(payload);
 
     return {

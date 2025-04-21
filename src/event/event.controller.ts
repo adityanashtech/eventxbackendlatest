@@ -21,9 +21,11 @@ import {
   getEventTypeSwagger,
   getEventsByStatusSwagger,
 } from "./event.swagger";
-import { AuthGuard } from "../user/auth.guard";
+import { AuthGuard } from "../user/guards/auth.guard";
 import { UserEvent } from "../user-event/user-event.entity";
 import { EventService } from "./event.service";
+import { UpdateEventDto } from "./events.dto";
+import { User } from "src/user/decorators/user.decorator";
 
 @ApiBearerAuth()
 @Controller("events")
@@ -84,7 +86,12 @@ export class EventController {
 
   @Patch(":id")
   @updateEventSwagger()
-  async updateEventById(@Param("id") id: number, @Body() eventData: any) {
-    return this.eventService.updateEvent(id, eventData);
+  async updateEventById(
+    @Param("id") id: number,
+    @Body() eventData: UpdateEventDto,
+    @User("role") role: string
+  ) {
+    const isAdmin = role === "admin";
+    return this.eventService.updateEvent(id, eventData, isAdmin);
   }
 }
