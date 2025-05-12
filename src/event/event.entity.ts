@@ -2,9 +2,9 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from "typeorm";
 import { UserEvent } from "../user-event/user-event.entity";
 
 export enum ApprovalStatus {
-  PENDING = "pending",
-  APPROVED = "approved",
-  REJECTED = "rejected",
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
 
 @Entity()

@@ -21,6 +21,7 @@ import {
   getEventTypeSwagger,
   getEventsByStatusSwagger,
   findEventsSwagger,
+  getEventsByCreatorSwagger,
 } from "./event.swagger";
 import { AuthGuard } from "../user/guards/auth.guard";
 import { UserEvent } from "../user-event/user-event.entity";
@@ -103,5 +104,12 @@ export class EventController {
   ) {
     const isAdmin = role === "admin";
     return this.eventService.updateEvent(id, eventData, isAdmin);
+  }
+
+  @Get("creator/:userId")
+  @ApiBearerAuth()
+  @getEventsByCreatorSwagger()
+  async getEventsByCreator(@Param("userId") userId: number) {
+    return this.eventService.getEventsByCreator(userId);
   }
 }

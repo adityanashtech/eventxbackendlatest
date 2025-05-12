@@ -109,6 +109,7 @@ export class EventService {
         event: savedEvent,
       };
     } catch (error) {
+      console.log(error)
       throw new HttpException(
         "Error while saving event",
         HttpStatus.INTERNAL_SERVER_ERROR
@@ -456,6 +457,44 @@ export class EventService {
     } catch (error) {
       throw new HttpException(
         "Error reading helper.json file",
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getEventsByCreator(userId: number): Promise<{
+    statusCode: number;
+    message: string;
+    data?: Event[];
+  }> {
+    if (!userId) {
+      throw new HttpException("User ID is required", HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      const events = await this.eventRepository.find({
+        where: { user_id: userId },
+        order: {
+          created_at: 'DESC'
+        }
+      });
+
+      if (!events.length) {
+        return {
+          statusCode: HttpStatus.OK,
+          message: "No events found for this creator",
+          data: []
+        };
+      }
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: "Events fetched successfully",
+        data: events
+      };
+    } catch (error) {
+      throw new HttpException(
+        "Error fetching events",
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
