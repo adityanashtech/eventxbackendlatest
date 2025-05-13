@@ -67,8 +67,8 @@ export const updateApprovalSwagger = () => {
         properties: {
           approval: {
             type: "string",
-            enum: ["approved", "pending", "rejected"],
-            example: "approved",
+            enum: ["PENDING", "APPROVED", "REJECTED"],
+            example: "APPROVED",
           },
         },
         required: ["approval"],

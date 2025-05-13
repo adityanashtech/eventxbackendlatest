@@ -209,3 +209,10 @@ export const findEventsSwagger = () => {
     })
   );
 };
+
+export const getEventsByCreatorSwagger = () => {
+  return ApiOperation({
+    summary: "Get events by creator",
+    description: "Retrieve all events created by a specific user",
+  });
+};
