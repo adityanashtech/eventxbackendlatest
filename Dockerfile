@@ -13,8 +13,11 @@ RUN npm install
 # Copy the entire local directory to the working directory
 COPY . .
 
+# Build the application
+RUN npm run build
+
 # Expose the port on which your Nest.js app runs
 EXPOSE 4000
 
 # Command to start your Nest.js application
-CMD ["npm", "start"]
+CMD ["npm", "run", "start:prod"]

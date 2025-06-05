@@ -3,13 +3,16 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AdminController } from "./admin.controller";
 import { AdminService } from "./admin.service";
 import { Event } from "../event/event.entity";
-import { EventService } from "src/event/event.service";
-import { User } from "src/user/user.entity";
-import { UserEvent } from "src/user-event/user-event.entity";
+import { User } from "../user/user.entity";
+import { EventModule } from "../event/event.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Event, User, UserEvent])],
+  imports: [
+    TypeOrmModule.forFeature([Event, User]),
+    EventModule
+  ],
   controllers: [AdminController],
-  providers: [AdminService, EventService],
+  providers: [AdminService],
+  exports: [AdminService]
 })
 export class AdminModule {}

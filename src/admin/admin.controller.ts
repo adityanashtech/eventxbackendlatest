@@ -14,6 +14,7 @@ import {
   getEventsByTypeSwagger,
   updateApprovalSwagger,
   updateStatusEventSwagger,
+  getUserStatsSwagger,
 } from "./admin.swagger";
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/user/guards/auth.guard";
@@ -55,5 +56,13 @@ export class AdminController {
     @Body("approval") approval: ApprovalStatus
   ) {
     return this.eventService.updateEvent(id, { approval }, true);
+  }
+
+  @Get("user-stats")
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("admin")
+  @getUserStatsSwagger()
+  async getUserCreationStats(@Query('months') months?: number) {
+    return this.adminService.getUserCreationStats(months);
   }
 }
