@@ -1,14 +1,17 @@
 import { Injectable, HttpStatus, Body, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { Repository, LessThan, MoreThan, LessThanOrEqual, MoreThanOrEqual, Between } from 'typeorm';
 import { Event } from '../event/event.entity';
-import { startOfDay } from 'date-fns';
+import { User } from '../user/user.entity';
+import { startOfDay, subMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async getEventsByType(type: string): Promise<{ statusCode: number, message: string, data?: Event[], count?: number }> {
@@ -68,5 +71,39 @@ export class AdminService {
     } catch (error) {
       throw new HttpException('Error updating event', HttpStatus.INTERNAL_SERVER_ERROR);
     }  
+  }
+
+  async getUserCreationStats(months: number = 6): Promise<{ statusCode: number; message: string; data?: any[] }> {
+    try {
+      const currentDate = new Date();
+      const stats = [];
+
+      for (let i = 0; i < months; i++) {
+        const monthStart = startOfMonth(subMonths(currentDate, i));
+        const monthEnd = endOfMonth(monthStart);
+
+        const users = await this.userRepository.count({
+          where: {
+            created_at: Between(monthStart, monthEnd)
+          }
+        });
+
+        stats.push({
+          month: format(monthStart, 'MMM yyyy'),
+          count: users
+        });
+      }
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'User creation statistics retrieved successfully',
+        data: stats.reverse() // Reverse to get chronological order
+      };
+    } catch (error) {
+      throw new HttpException(
+        'Error fetching user creation statistics',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 }

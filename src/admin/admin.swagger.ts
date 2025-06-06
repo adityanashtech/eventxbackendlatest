@@ -86,3 +86,42 @@ export const updateApprovalSwagger = () => {
     ApiResponse({ status: 422, description: "Invalid approval value" })
   );
 };
+
+export const getUserStatsSwagger = () => {
+  return applyDecorators(
+    ApiTags("admin"),
+    ApiOperation({ summary: "Get user creation statistics for the last few months" }),
+    ApiBearerAuth(),
+    ApiQuery({
+      name: "months",
+      required: false,
+      type: Number,
+      description: "Number of months to fetch data for (default: 6)",
+      example: 6
+    }),
+    ApiResponse({
+      status: 200,
+      description: "User creation statistics retrieved successfully",
+      schema: {
+        type: "object",
+        properties: {
+          statusCode: { type: "number", example: 200 },
+          message: { type: "string", example: "User creation statistics retrieved successfully" },
+          data: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                month: { type: "string", example: "Jan 2024" },
+                count: { type: "number", example: 5 }
+              }
+            }
+          }
+        }
+      }
+    }),
+    ApiResponse({ status: 401, description: "Unauthorized" }),
+    ApiResponse({ status: 403, description: "Forbidden. Only admin can access this." }),
+    ApiResponse({ status: 500, description: "Error fetching user creation statistics" })
+  );
+};
