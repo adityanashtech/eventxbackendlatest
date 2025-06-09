@@ -125,3 +125,51 @@ export const getUserStatsSwagger = () => {
     ApiResponse({ status: 500, description: "Error fetching user creation statistics" })
   );
 };
+
+export const getEventTypeDistributionSwagger = () => {
+  return applyDecorators(
+    ApiTags("admin"),
+    ApiOperation({ summary: "Get percentage distribution of event types" }),
+    ApiBearerAuth(),
+    ApiQuery({
+      name: "months",
+      required: false,
+      type: Number,
+      description: "Number of months to fetch data for (default: 12)",
+      example: 12
+    }),
+    ApiResponse({
+      status: 200,
+      description: "Event type distribution retrieved successfully",
+      schema: {
+        type: "object",
+        properties: {
+          statusCode: { type: "number", example: 200 },
+          message: { type: "string", example: "Event type distribution retrieved successfully" },
+          data: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                type: { type: "string", example: "Conference" },
+                count: { type: "number", example: 25 },
+                percentage: { type: "number", example: 35.71 }
+              }
+            }
+          },
+          timeFrame: {
+            type: "object",
+            properties: {
+              startDate: { type: "string", example: "Jan 2024" },
+              endDate: { type: "string", example: "Dec 2024" },
+              months: { type: "number", example: 12 }
+            }
+          }
+        }
+      }
+    }),
+    ApiResponse({ status: 401, description: "Unauthorized" }),
+    ApiResponse({ status: 403, description: "Forbidden. Only admin can access this." }),
+    ApiResponse({ status: 500, description: "Error fetching event type distribution" })
+  );
+};
