@@ -9,12 +9,13 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { AdminService } from "./admin.service";
+import { AdminService, EventTypeDistributionResponse } from "./admin.service";
 import {
   getEventsByTypeSwagger,
   updateApprovalSwagger,
   updateStatusEventSwagger,
   getUserStatsSwagger,
+  getEventTypeDistributionSwagger,
 } from "./admin.swagger";
 import { ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/user/guards/auth.guard";
@@ -64,5 +65,13 @@ export class AdminController {
   @getUserStatsSwagger()
   async getUserCreationStats(@Query('months') months?: number) {
     return this.adminService.getUserCreationStats(months);
+  }
+
+  @Get("event-type-distribution")
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("admin")
+  @getEventTypeDistributionSwagger()
+  async getEventTypeDistribution(@Query('months') months?: number): Promise<EventTypeDistributionResponse> {
+    return this.adminService.getEventTypeDistribution(months);
   }
 }

@@ -5,6 +5,21 @@ import { Event } from '../event/event.entity';
 import { User } from '../user/user.entity';
 import { startOfDay, subMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 
+export interface EventTypeDistributionResponse {
+  statusCode: number;
+  message: string;
+  data?: Array<{
+    type: string;
+    count: number;
+    percentage: number;
+  }>;
+  timeFrame?: {
+    startDate: string;
+    endDate: string;
+    months: number;
+  };
+}
+
 @Injectable()
 export class AdminService {
   constructor(
@@ -102,6 +117,64 @@ export class AdminService {
     } catch (error) {
       throw new HttpException(
         'Error fetching user creation statistics',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getEventTypeDistribution(months: number = 12): Promise<EventTypeDistributionResponse> {
+    try {
+      const currentDate = new Date();
+      const startDate = startOfMonth(subMonths(currentDate, months - 1));
+      const endDate = endOfMonth(currentDate);
+
+      // Get total count of events within the time frame
+      const totalEvents = await this.eventRepository.count({
+        where: {
+          created_at: Between(startDate, endDate)
+        }
+      });
+
+      if (totalEvents === 0) {
+        return {
+          statusCode: HttpStatus.OK,
+          message: 'No events found in the specified time frame',
+          data: []
+        };
+      }
+
+      // Get count of events for each type within the time frame
+      const eventTypes = await this.eventRepository
+        .createQueryBuilder('event')
+        .select('event.event_type', 'type')
+        .addSelect('COUNT(*)', 'count')
+        .where('event.created_at BETWEEN :startDate AND :endDate', {
+          startDate,
+          endDate
+        })
+        .groupBy('event.event_type')
+        .getRawMany();
+
+      // Calculate percentages and format the response
+      const distribution = eventTypes.map(type => ({
+        type: type.type,
+        count: parseInt(type.count),
+        percentage: Number(((parseInt(type.count) / totalEvents) * 100).toFixed(2))
+      }));
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Event type distribution retrieved successfully',
+        data: distribution,
+        timeFrame: {
+          startDate: format(startDate, 'MMM yyyy'),
+          endDate: format(endDate, 'MMM yyyy'),
+          months
+        }
+      };
+    } catch (error) {
+      throw new HttpException(
+        'Error fetching event type distribution',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
