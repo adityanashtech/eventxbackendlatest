@@ -169,7 +169,7 @@ export class UserService {
       throw new HttpException("User not found", HttpStatus.NOT_FOUND);
     }
 
-    Object.assign(user, { ...userData, email: userData.email.toLowerCase() });
+    Object.assign(user, { ...userData, email: userData.email?.toLowerCase() });
     const updatedUser = await this.userRepository.save(user);
     delete updatedUser.password;
 
