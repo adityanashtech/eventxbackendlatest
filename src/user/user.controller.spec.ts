@@ -3,12 +3,11 @@ import { UserController } from './user.controller';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import * as Joi from 'joi';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 describe('UserController', () => {
   let userController: UserController;
-  let userRepository: Repository<User>;
+  // let userRepository: Repository<User>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -22,7 +21,7 @@ describe('UserController', () => {
     }).compile();
 
     userController = module.get<UserController>(UserController);
-    userRepository = module.get<Repository<User>>(getRepositoryToken(User));
+    // userRepository = module.get<Repository<User>>(getRepositoryToken(User));
   });
 
   afterEach(() => {
@@ -36,7 +35,7 @@ describe('UserController', () => {
       };
 
       await expect(userController.signup(userData)).rejects.toThrowError(
-        new HttpException('Invalid data', HttpStatus.BAD_REQUEST),
+        new HttpException('Invalid data', HttpStatus.BAD_REQUEST)
       );
     });
 
@@ -51,7 +50,7 @@ describe('UserController', () => {
       };
 
       await expect(userController.login(credentials)).rejects.toThrowError(
-        new HttpException('Invalid email', HttpStatus.UNAUTHORIZED),
+        new HttpException('Invalid email', HttpStatus.UNAUTHORIZED)
       );
     });
 

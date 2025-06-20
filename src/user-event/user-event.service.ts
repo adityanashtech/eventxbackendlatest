@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { UserEvent } from "./user-event.entity";
-import { User } from "../user/user.entity";
-import { Event } from "../event/event.entity";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserEvent } from './user-event.entity';
+import { User } from '../user/user.entity';
+import { Event } from '../event/event.entity';
 
 @Injectable()
 export class UserEventService {
@@ -49,14 +49,14 @@ export class UserEventService {
 
     return {
       statusCode: 200,
-      message: "User registered to event successfully",
+      message: 'User registered to event successfully',
       data: savedUserEvent,
     };
   }
 
   async getUserEvents(
     user_id: number,
-    status: "ongoing" | "past" | "upcoming" | "all" = "all"
+    status: 'ongoing' | 'past' | 'upcoming' | 'all' = 'all'
   ): Promise<{ message: string; data?: any; statusCode: number }> {
     const user = await this.userRepository.findOne({ where: { id: user_id } });
     delete user.password;
@@ -64,9 +64,9 @@ export class UserEventService {
       throw new NotFoundException(`User with ID ${user_id} does not exist`);
     }
 
-    const [userEvents, count] = await this.userEventRepository.findAndCount({
+    const [userEvents] = await this.userEventRepository.findAndCount({
       where: { user: { id: user_id } },
-      relations: ["event"],
+      relations: ['event'],
     });
 
     const now = new Date();
@@ -78,11 +78,11 @@ export class UserEventService {
         const end = new Date(event.event_end_date);
 
         switch (status) {
-          case "ongoing":
+          case 'ongoing':
             return start <= now && end >= now;
-          case "upcoming":
+          case 'upcoming':
             return start > now;
-          case "past":
+          case 'past':
             return end < now;
           default:
             return true;
@@ -91,7 +91,7 @@ export class UserEventService {
 
     return {
       statusCode: 200,
-      message: "Events retrieved successfully",
+      message: 'Events retrieved successfully',
       data: {
         users: user,
         event: filteredEvents,
@@ -116,7 +116,7 @@ export class UserEventService {
 
     const [users, count] = await this.userEventRepository.findAndCount({
       where: { event: { id: event_id } },
-      relations: ["user"],
+      relations: ['user'],
     });
 
     if (count === 0) {
@@ -143,7 +143,7 @@ export class UserEventService {
 
     return {
       statusCode: 200,
-      message: "Users retrieved successfully",
+      message: 'Users retrieved successfully',
       data: {
         event: event,
         users: userData,

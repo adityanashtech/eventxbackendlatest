@@ -2,11 +2,10 @@ import {
   Injectable,
   HttpException,
   HttpStatus,
-  UnauthorizedException,
   NotFoundException,
   BadRequestException,
-} from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import {
   Repository,
   Between,
@@ -14,15 +13,15 @@ import {
   LessThan,
   MoreThan,
   MoreThanOrEqual,
-} from "typeorm";
-import { Event } from "./event.entity";
-import { User } from "../user/user.entity";
-import { UserEvent } from "../user-event/user-event.entity";
-import * as Joi from "joi";
-import { isBefore, isValid, startOfDay } from "date-fns";
-import * as fs from "fs";
-import * as path from "path";
-import { CreateEventDto, UpdateEventDto } from "./events.dto";
+} from 'typeorm';
+import { ApprovalStatus, Event } from './event.entity';
+import { User } from '../user/user.entity';
+import { UserEvent } from '../user-event/user-event.entity';
+import * as Joi from 'joi';
+import { isBefore, isValid, startOfDay } from 'date-fns';
+import * as fs from 'fs';
+import * as path from 'path';
+import { CreateEventDto, UpdateEventDto } from './events.dto';
 
 @Injectable()
 export class EventService {
@@ -57,7 +56,7 @@ export class EventService {
 
     const user = await this.userRepository.findOne({ where: { id: user_id } });
     if (!user) {
-      return { statusCode: 422, message: "User does not exist with this id." };
+      return { statusCode: 422, message: 'User does not exist with this id.' };
     }
 
     const startDateTime = new Date(event_start_date);
@@ -65,27 +64,27 @@ export class EventService {
     const currentDate = new Date();
 
     if (!isValid(startDateTime) || !isValid(endDateTime)) {
-      return { statusCode: 422, message: "Enter valid dates" };
+      return { statusCode: 422, message: 'Enter valid dates' };
     }
 
     if (isBefore(startDateTime, startOfDay(currentDate))) {
       return {
         statusCode: 422,
-        message: "Event start date cannot be in the past",
+        message: 'Event start date cannot be in the past',
       };
     }
 
     if (isBefore(endDateTime, startOfDay(currentDate))) {
       return {
         statusCode: 422,
-        message: "Event end date cannot be in the past",
+        message: 'Event end date cannot be in the past',
       };
     }
 
     if (isBefore(endDateTime, startDateTime)) {
       return {
         statusCode: 422,
-        message: "Event end date cannot be earlier than start date",
+        message: 'Event end date cannot be earlier than start date',
       };
     }
 
@@ -94,7 +93,7 @@ export class EventService {
     });
 
     if (existingEvent) {
-      return { statusCode: 422, message: "Event already exists" };
+      return { statusCode: 422, message: 'Event already exists' };
     }
 
     value.email = user.email;
@@ -105,13 +104,13 @@ export class EventService {
       const savedEvent = await this.eventRepository.save(value);
       return {
         statusCode: 200,
-        message: "Event saved successfully",
+        message: 'Event saved successfully',
         event: savedEvent,
       };
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw new HttpException(
-        "Error while saving event",
+        'Error while saving event',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -122,14 +121,14 @@ export class EventService {
       const event = await this.eventRepository.findOne({ where: { id } });
 
       if (!event) {
-        return { statusCode: 422, message: "No data found" };
+        return { statusCode: 422, message: 'No data found' };
       }
 
       let isRegister = false;
       if (userId) {
         const userEvent = await this.userEventRepository.findOne({
           where: { event: { id }, user: { id: userId } },
-          relations: ["event", "user"],
+          relations: ['event', 'user'],
         });
 
         if (userEvent) {
@@ -139,7 +138,7 @@ export class EventService {
 
       return {
         statusCode: 200,
-        message: "Event found successfully",
+        message: 'Event found successfully',
         data: [{ ...event, is_register: isRegister }],
       };
     }
@@ -147,7 +146,7 @@ export class EventService {
     const events = await this.eventRepository.find();
     return {
       statusCode: 200,
-      message: "All events retrieved successfully",
+      message: 'All events retrieved successfully',
       data: events,
     };
   }
@@ -156,15 +155,15 @@ export class EventService {
     const event = await this.eventRepository.findOne({ where: { id } });
 
     if (!event) {
-      throw new HttpException("Event not found", HttpStatus.NOT_FOUND);
+      throw new HttpException('Event not found', HttpStatus.NOT_FOUND);
     }
 
     try {
       await this.eventRepository.remove(event);
-      return { statusCode: 200, message: "Event deleted successfully" };
+      return { statusCode: 200, message: 'Event deleted successfully' };
     } catch (error) {
       throw new HttpException(
-        "Error deleting event",
+        'Error deleting event',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -173,14 +172,14 @@ export class EventService {
   async updateEvent(
     eventId: number,
     updateData: UpdateEventDto,
-    isAdmin: boolean
+    isAdmin: boolean = false
   ): Promise<{ message: string; event?: Event; statusCode: number }> {
     const existingEvent = await this.eventRepository.findOne({
       where: { id: eventId },
     });
 
     if (!existingEvent) {
-      throw new NotFoundException("Event not found");
+      throw new NotFoundException('Event not found');
     }
 
     const { event_start_date, event_end_date } = updateData;
@@ -191,7 +190,7 @@ export class EventService {
       (event_start_date && !isValid(new Date(event_start_date))) ||
       (event_end_date && !isValid(new Date(event_end_date)))
     ) {
-      throw new HttpException("Enter valid dates", HttpStatus.BAD_REQUEST);
+      throw new HttpException('Enter valid dates', HttpStatus.BAD_REQUEST);
     }
 
     if (
@@ -199,7 +198,7 @@ export class EventService {
       isBefore(startOfDay(new Date(event_start_date)), startOfDay(currentDate))
     ) {
       throw new HttpException(
-        "Event start date cannot be in the past",
+        'Event start date cannot be in the past',
         HttpStatus.BAD_REQUEST
       );
     }
@@ -210,14 +209,14 @@ export class EventService {
       isBefore(new Date(event_end_date), new Date(event_start_date))
     ) {
       throw new HttpException(
-        "Event end date cannot be earlier than start date",
+        'Event end date cannot be earlier than start date',
         HttpStatus.BAD_REQUEST
       );
     }
 
-    if (!isAdmin && "approval" in updateData) {
+    if (!isAdmin && 'approval' in updateData) {
       throw new HttpException(
-        "Forbidden. Only admin can access this.",
+        'Forbidden. Only admin can access this.',
         HttpStatus.FORBIDDEN
       );
     }
@@ -226,7 +225,7 @@ export class EventService {
       const filteredUpdateData = isAdmin
         ? updateData
         : Object.fromEntries(
-            Object.entries(updateData).filter(([key]) => key !== "approval")
+            Object.entries(updateData).filter(([key]) => key !== 'approval')
           );
       await this.eventRepository.update(eventId, filteredUpdateData);
       const updatedEvent = await this.eventRepository.findOne({
@@ -235,12 +234,12 @@ export class EventService {
 
       return {
         statusCode: 200,
-        message: "Event updated successfully",
+        message: 'Event updated successfully',
         event: updatedEvent,
       };
     } catch (error) {
       throw new HttpException(
-        "Error updating event",
+        'Error updating event',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -250,14 +249,14 @@ export class EventService {
     userId: number
   ): Promise<{ message: string; data?: any[]; statusCode: number }> {
     if (!userId) {
-      throw new HttpException("User ID is required", HttpStatus.BAD_REQUEST);
+      throw new HttpException('User ID is required', HttpStatus.BAD_REQUEST);
     }
 
     try {
       const events = await this.eventRepository.find();
       const userEvents = await this.userEventRepository.find({
         where: { user: { id: userId } },
-        relations: ["event"],
+        relations: ['event'],
       });
       const userEventIds = userEvents.map((ue) => ue.event.id);
 
@@ -268,12 +267,12 @@ export class EventService {
 
       return {
         statusCode: 200,
-        message: "Events fetched successfully",
+        message: 'Events fetched successfully',
         data: response,
       };
     } catch (error) {
       throw new HttpException(
-        "Error fetching events",
+        'Error fetching events',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -283,7 +282,8 @@ export class EventService {
     location?: string,
     name?: string,
     startDate?: string,
-    endDate?: string
+    endDate?: string,
+    isAdmin: boolean = false
   ): Promise<{ message: string; data?: Event[]; statusCode: number }> {
     const query: any = {};
     if (location) {
@@ -298,38 +298,43 @@ export class EventService {
       query.event_start_date = Between(startDate, endDate);
     }
 
+    if (!isAdmin) {
+      query.approval = ApprovalStatus.APPROVED;
+    }
+
     const events = await this.eventRepository.find({
       where: query,
     });
 
     if (!events || events.length === 0) {
-      return { statusCode: 422, message: "No data found" };
+      return { statusCode: 422, message: 'No data found' };
     }
 
     return {
       statusCode: 200,
-      message: "Events found successfully",
+      message: 'Events found successfully',
       data: events,
     };
   }
 
   async findEvents(
     keyword?: string,
-    type?: "trending" | "upcoming"
+    type?: 'trending' | 'upcoming',
+    isAdmin: boolean = false
   ): Promise<{
     statusCode: number;
     message: string;
     data?: Event[];
   }> {
     try {
-      if (type && type !== "trending" && type !== "upcoming") {
+      if (type && type !== 'trending' && type !== 'upcoming') {
         throw new BadRequestException(
           `Invalid type: '${type}'. Allowed values are 'trending' or 'upcoming'.`
         );
       }
-      const query = this.eventRepository.createQueryBuilder("event");
+      const query = this.eventRepository.createQueryBuilder('event');
 
-      query.where("event.event_start_date >= CURRENT_DATE");
+      query.where('event.event_start_date >= CURRENT_DATE');
 
       if (keyword) {
         query.andWhere(
@@ -338,67 +343,84 @@ export class EventService {
         );
       }
 
-      if (type === "trending") {
-        query.andWhere("event.trending = :trending", { trending: true });
+      if (type === 'trending') {
+        query.andWhere('event.trending = :trending', { trending: true });
       }
 
-      if (type === "upcoming") {
-        query.andWhere("event.event_start_date > CURRENT_DATE");
+      if (type === 'upcoming') {
+        query.andWhere('event.event_start_date > CURRENT_DATE');
       }
 
-      query.orderBy("event.event_start_date", "ASC");
+      if (!isAdmin) {
+        query.andWhere('event.approval = :approval', {
+          approval: ApprovalStatus.APPROVED,
+        });
+      }
+
+      query.orderBy('event.event_start_date', 'DESC');
 
       const events = await query.getMany();
 
       return {
         statusCode: 200,
-        message: "Fetched upcoming events successfully",
+        message: 'Fetched upcoming events successfully',
         data: events,
       };
     } catch (error) {
       if (error instanceof HttpException) throw error;
 
       throw new HttpException(
-        "An error occurred while searching for events.",
+        'An error occurred while searching for events.',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
 
-  async getEventsByStatus(type: string): Promise<{
+  async getEventsByStatus(
+    type: string,
+    isAdmin: boolean = false
+  ): Promise<{
     statusCode: number;
     message: string;
     data?: Event[];
     count?: number;
   }> {
     const currentDate = new Date();
+    const whereClause: Partial<Pick<Event, 'approval'>> = {};
     let events: Event[] = [];
 
+    if (!isAdmin) {
+      whereClause.approval = ApprovalStatus.APPROVED;
+    }
+
     switch (type) {
-      case "past":
+      case 'past':
         events = await this.eventRepository.find({
           where: [
             {
+              ...whereClause,
               event_start_date: LessThan(currentDate),
               event_end_date: LessThan(currentDate),
             },
           ],
         });
         break;
-      case "upcoming":
+      case 'upcoming':
         events = await this.eventRepository.find({
           where: [
             {
+              ...whereClause,
               event_start_date: MoreThan(currentDate),
               event_end_date: MoreThan(currentDate),
             },
           ],
         });
         break;
-      case "trending":
+      case 'trending':
         events = await this.eventRepository.find({
           where: [
             {
+              ...whereClause,
               trending: true,
               event_start_date: MoreThanOrEqual(currentDate),
               event_end_date: MoreThanOrEqual(currentDate),
@@ -406,13 +428,17 @@ export class EventService {
           ],
         });
         break;
-      case "all":
-        events = await this.eventRepository.find();
+      case 'all':
+        events = await this.eventRepository.find({
+          where: {
+            ...whereClause,
+          },
+        });
         break;
       default:
         return {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: "Invalid event type",
+          message: 'Invalid event type',
         };
     }
 
@@ -421,14 +447,14 @@ export class EventService {
     if (count > 0) {
       return {
         statusCode: HttpStatus.OK,
-        message: "Events found successfully",
+        message: 'Events found successfully',
         data: events,
         count: count,
       };
     } else {
       return {
         statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        message: "No data found",
+        message: 'No data found',
         count: count,
       };
     }
@@ -440,23 +466,23 @@ export class EventService {
     statusCode: number;
   }> {
     try {
-      const filePath = path.join(__dirname, "..", "..", "src", "helper.json");
+      const filePath = path.join(__dirname, '..', '..', 'src', 'helper.json');
 
       if (!fs.existsSync(filePath)) {
         throw new Error(`File not found at path: ${filePath}`);
       }
 
-      const fileContents = fs.readFileSync(filePath, "utf-8");
+      const fileContents = fs.readFileSync(filePath, 'utf-8');
       const events = JSON.parse(fileContents).events;
 
       return {
         statusCode: 200,
-        message: "Event types retrieved successfully",
+        message: 'Event types retrieved successfully',
         data: events,
       };
     } catch (error) {
       throw new HttpException(
-        "Error reading helper.json file",
+        'Error reading helper.json file',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -468,33 +494,33 @@ export class EventService {
     data?: Event[];
   }> {
     if (!userId) {
-      throw new HttpException("User ID is required", HttpStatus.BAD_REQUEST);
+      throw new HttpException('User ID is required', HttpStatus.BAD_REQUEST);
     }
 
     try {
       const events = await this.eventRepository.find({
         where: { user_id: userId },
         order: {
-          created_at: 'DESC'
-        }
+          created_at: 'DESC',
+        },
       });
 
       if (!events.length) {
         return {
           statusCode: HttpStatus.OK,
-          message: "No events found for this creator",
-          data: []
+          message: 'No events found for this creator',
+          data: [],
         };
       }
 
       return {
         statusCode: HttpStatus.OK,
-        message: "Events fetched successfully",
-        data: events
+        message: 'Events fetched successfully',
+        data: events,
       };
     } catch (error) {
       throw new HttpException(
-        "Error fetching events",
+        'Error fetching events',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }

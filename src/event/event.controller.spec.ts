@@ -55,7 +55,9 @@ describe('EventController', () => {
         event_name: 'Test Event',
         location: 'Test Location',
         event_start_date: new Date().toISOString(),
-        event_end_date: new Date(new Date().getTime() + 3600 * 1000).toISOString(),
+        event_end_date: new Date(
+          new Date().getTime() + 3600 * 1000
+        ).toISOString(),
         description: 'Test Description',
         registration_fee: 10,
         trending: true,
@@ -71,7 +73,7 @@ describe('EventController', () => {
       mockEvent.registration_fee = eventData.registration_fee;
       mockEvent.trending = eventData.trending;
       mockEvent.event_type = eventData.event_type;
-      jest.spyOn(eventRepository, 'findOne').mockResolvedValue(null); 
+      jest.spyOn(eventRepository, 'findOne').mockResolvedValue(null);
       jest.spyOn(eventRepository, 'save').mockResolvedValue(mockEvent);
 
       const result = await controller.createEvent(eventData);
@@ -85,18 +87,20 @@ describe('EventController', () => {
 
     it('should return error when user does not exist', async () => {
       const eventData = {
-        user_id: 999, 
+        user_id: 999,
         event_name: 'Test Event',
         location: 'Test Location',
         event_start_date: new Date().toISOString(),
-        event_end_date: new Date(new Date().getTime() + 3600 * 1000).toISOString(),
+        event_end_date: new Date(
+          new Date().getTime() + 3600 * 1000
+        ).toISOString(),
         description: 'Test Description',
         registration_fee: 10,
         trending: true,
         event_type: 'Test Type',
       };
 
-      jest.spyOn(userRepository, 'findOne').mockResolvedValue(null); 
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(null);
       try {
         await controller.createEvent(eventData);
       } catch (error) {
@@ -127,7 +131,7 @@ describe('EventController', () => {
 
     it('should return error when event is not found by ID', async () => {
       const eventId = 999;
-      jest.spyOn(eventRepository, 'findOne').mockResolvedValue(null); 
+      jest.spyOn(eventRepository, 'findOne').mockResolvedValue(null);
 
       const result = await controller.getEventById(eventId);
 
@@ -151,8 +155,8 @@ describe('EventController', () => {
     });
 
     it('should return error when event to delete is not found by ID', async () => {
-      const eventId = 999; 
-      jest.spyOn(eventRepository, 'findOne').mockResolvedValue(null); 
+      const eventId = 999;
+      jest.spyOn(eventRepository, 'findOne').mockResolvedValue(null);
 
       try {
         await controller.deleteEventById(eventId);
@@ -171,36 +175,36 @@ describe('EventController', () => {
         event_name: 'Updated Event Name',
         location: 'Updated Location',
       };
-  
+
       const mockEvent = new Event();
       mockEvent.id = eventId;
       mockEvent.event_name = 'Original Event Name';
       mockEvent.location = 'Original Location';
-  
+
       jest.spyOn(eventRepository, 'findOne').mockResolvedValue(mockEvent);
-      jest.spyOn(eventRepository, 'save').mockImplementation(event => {
+      jest.spyOn(eventRepository, 'save').mockImplementation((event) => {
         const updatedEvent = { ...mockEvent, ...event };
         return Promise.resolve(updatedEvent as Event);
       });
-  
+
       const result = await controller.updateEventById(eventId, updateData);
-  
+
       expect(result.statusCode).toBe(200);
       expect(result.message).toBe('Event updated successfully');
       expect(result.event).toBeDefined();
       expect(result.event.event_name).toBe('Updated Event Name');
       expect(result.event.location).toBe('Updated Location');
     });
-  
+
     it('should return error when event to update is not found by ID', async () => {
       const eventId = 999;
       const updateData = {
         event_name: 'Updated Event Name',
         location: 'Updated Location',
       };
-  
+
       jest.spyOn(eventRepository, 'findOne').mockResolvedValue(null);
-  
+
       try {
         await controller.updateEventById(eventId, updateData);
       } catch (error) {
@@ -209,6 +213,5 @@ describe('EventController', () => {
         expect(error.getStatus()).toBe(HttpStatus.NOT_FOUND);
       }
     });
-  });   
+  });
 });
-

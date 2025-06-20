@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserEventController } from './user-event.controller';
 import { UserEventService } from './user-event.service';
-import { AuthGuard } from '../user/guards/auth.guard'
+import { AuthGuard } from '../user/guards/auth.guard';
 
 describe('UserEventController', () => {
   let controller: UserEventController;
@@ -22,7 +22,7 @@ describe('UserEventController', () => {
       ],
     })
       .overrideGuard(AuthGuard)
-      .useValue({ canActivate: () => true }) 
+      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get<UserEventController>(UserEventController);
