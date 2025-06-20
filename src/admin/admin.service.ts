@@ -1,9 +1,22 @@
-import { Injectable, HttpStatus, Body, HttpException } from '@nestjs/common';
+import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan, LessThanOrEqual, MoreThanOrEqual, Between } from 'typeorm';
+import {
+  Repository,
+  LessThan,
+  MoreThan,
+  // LessThanOrEqual,
+  MoreThanOrEqual,
+  Between,
+} from 'typeorm';
 import { Event } from '../event/event.entity';
 import { User } from '../user/user.entity';
-import { startOfDay, subMonths, startOfMonth, endOfMonth, format } from 'date-fns';
+import {
+  // startOfDay,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  format,
+} from 'date-fns';
 
 export interface EventTypeDistributionResponse {
   statusCode: number;
@@ -26,69 +39,107 @@ export class AdminService {
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>
   ) {}
 
-  async getEventsByType(type: string): Promise<{ statusCode: number, message: string, data?: Event[], count?: number }> {
-    const currentDate = new Date(); 
+  async getEventsByType(type: string): Promise<{
+    statusCode: number;
+    message: string;
+    data?: Event[];
+    count?: number;
+  }> {
+    const currentDate = new Date();
     let events: Event[] = [];
 
     switch (type) {
       case 'past':
         events = await this.eventRepository.find({
           where: [
-            { event_start_date: LessThan(currentDate), event_end_date: LessThan(currentDate) },
+            {
+              event_start_date: LessThan(currentDate),
+              event_end_date: LessThan(currentDate),
+            },
           ],
         });
         break;
       case 'upcoming':
         events = await this.eventRepository.find({
           where: [
-            { event_start_date: MoreThan(currentDate), event_end_date: MoreThan(currentDate) },
+            {
+              event_start_date: MoreThan(currentDate),
+              event_end_date: MoreThan(currentDate),
+            },
           ],
         });
         break;
-        case 'trending':
-          events = await this.eventRepository.find({
-            where: [
-              { trending: true, event_start_date: MoreThanOrEqual(currentDate), event_end_date: MoreThanOrEqual(currentDate) },
-            ],
-          });
-          break;
+      case 'trending':
+        events = await this.eventRepository.find({
+          where: [
+            {
+              trending: true,
+              event_start_date: MoreThanOrEqual(currentDate),
+              event_end_date: MoreThanOrEqual(currentDate),
+            },
+          ],
+        });
+        break;
       case 'all':
         events = await this.eventRepository.find();
         break;
       default:
-        return { statusCode: HttpStatus.BAD_REQUEST, message: 'Invalid event type' };
+        return {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Invalid event type',
+        };
     }
 
     const count = events.length;
 
     if (count > 0) {
-      return { statusCode: HttpStatus.OK, message: 'Events found successfully', data: events, count: count };
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Events found successfully',
+        data: events,
+        count: count,
+      };
     } else {
-      return { statusCode: HttpStatus.UNPROCESSABLE_ENTITY, message: 'No data found', count: count };
+      return {
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        message: 'No data found',
+        count: count,
+      };
     }
   }
 
-
-  async updateStatusEvent(id: number,event_status: boolean): Promise<{ statusCode: number, message: string, event?: Event}> {
- 
+  async updateStatusEvent(
+    id: number,
+    event_status: boolean
+  ): Promise<{ statusCode: number; message: string; event?: Event }> {
     try {
-      const event = await this.eventRepository.update(id,{ "status": event_status });
-      let updatedEvent: Event = await this.eventRepository.findOne({
-        where: 
-          { id:id }
+      await this.eventRepository.update(id, {
+        status: event_status,
       });
-      
-      console.log(updatedEvent)
-      return { statusCode: 200, message: 'Event status updated successfully', event: updatedEvent };
+      const updatedEvent: Event = await this.eventRepository.findOne({
+        where: { id: id },
+      });
+
+      console.log(updatedEvent);
+      return {
+        statusCode: 200,
+        message: 'Event status updated successfully',
+        event: updatedEvent,
+      };
     } catch (error) {
-      throw new HttpException('Error updating event', HttpStatus.INTERNAL_SERVER_ERROR);
-    }  
+      throw new HttpException(
+        'Error updating event',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 
-  async getUserCreationStats(months: number = 6): Promise<{ statusCode: number; message: string; data?: any[] }> {
+  async getUserCreationStats(
+    months: number = 6
+  ): Promise<{ statusCode: number; message: string; data?: any[] }> {
     try {
       const currentDate = new Date();
       const stats = [];
@@ -99,20 +150,20 @@ export class AdminService {
 
         const users = await this.userRepository.count({
           where: {
-            created_at: Between(monthStart, monthEnd)
-          }
+            created_at: Between(monthStart, monthEnd),
+          },
         });
 
         stats.push({
           month: format(monthStart, 'MMM yyyy'),
-          count: users
+          count: users,
         });
       }
 
       return {
         statusCode: HttpStatus.OK,
         message: 'User creation statistics retrieved successfully',
-        data: stats.reverse() // Reverse to get chronological order
+        data: stats.reverse(), // Reverse to get chronological order
       };
     } catch (error) {
       throw new HttpException(
@@ -122,7 +173,9 @@ export class AdminService {
     }
   }
 
-  async getEventTypeDistribution(months: number = 12): Promise<EventTypeDistributionResponse> {
+  async getEventTypeDistribution(
+    months: number = 12
+  ): Promise<EventTypeDistributionResponse> {
     try {
       const currentDate = new Date();
       const startDate = startOfMonth(subMonths(currentDate, months - 1));
@@ -131,15 +184,15 @@ export class AdminService {
       // Get total count of events within the time frame
       const totalEvents = await this.eventRepository.count({
         where: {
-          created_at: Between(startDate, endDate)
-        }
+          created_at: Between(startDate, endDate),
+        },
       });
 
       if (totalEvents === 0) {
         return {
           statusCode: HttpStatus.OK,
           message: 'No events found in the specified time frame',
-          data: []
+          data: [],
         };
       }
 
@@ -150,16 +203,18 @@ export class AdminService {
         .addSelect('COUNT(*)', 'count')
         .where('event.created_at BETWEEN :startDate AND :endDate', {
           startDate,
-          endDate
+          endDate,
         })
         .groupBy('event.event_type')
         .getRawMany();
 
       // Calculate percentages and format the response
-      const distribution = eventTypes.map(type => ({
+      const distribution = eventTypes.map((type) => ({
         type: type.type,
         count: parseInt(type.count),
-        percentage: Number(((parseInt(type.count) / totalEvents) * 100).toFixed(2))
+        percentage: Number(
+          ((parseInt(type.count) / totalEvents) * 100).toFixed(2)
+        ),
       }));
 
       return {
@@ -169,8 +224,8 @@ export class AdminService {
         timeFrame: {
           startDate: format(startDate, 'MMM yyyy'),
           endDate: format(endDate, 'MMM yyyy'),
-          months
-        }
+          months,
+        },
       };
     } catch (error) {
       throw new HttpException(

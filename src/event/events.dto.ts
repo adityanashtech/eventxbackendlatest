@@ -1,4 +1,4 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
@@ -7,9 +7,8 @@ import {
   IsBoolean,
   IsOptional,
   IsEnum,
-  isNotEmpty,
-} from "class-validator";
-import { ApprovalStatus } from "./event.entity";
+} from 'class-validator';
+import { ApprovalStatus } from './event.entity';
 
 export class CreateEventDto {
   @ApiProperty()

@@ -4,16 +4,16 @@ import {
   HttpStatus,
   NotFoundException,
   BadRequestException,
-} from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import * as jwt from "jsonwebtoken";
-import * as bcrypt from "bcryptjs";
-import { JwtService } from "@nestjs/jwt";
-import { User } from "./user.entity";
-import { Event } from "../event/event.entity";
-import { MailSender } from "../mailSender";
-import * as Joi from "joi";
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
+import { User } from './user.entity';
+import { Event } from '../event/event.entity';
+import { MailSender } from '../mailSender';
+import * as Joi from 'joi';
 
 @Injectable()
 export class UserService {
@@ -49,7 +49,7 @@ export class UserService {
     });
     if (existingUser) {
       throw new HttpException(
-        "User with this email already exists",
+        'User with this email already exists',
         HttpStatus.BAD_REQUEST
       );
     }
@@ -67,13 +67,13 @@ export class UserService {
 
     await this.mailSender.sendMail(
       email,
-      "Welcome to NashTech!",
+      'Welcome to NashTech!',
       `Hi ${name},\n\nWelcome to NashTech! Your signup was successful.\n\nBest regards,\nThe NashTech Team`
     );
 
     return {
       statusCode: 200,
-      message: "User signup successful",
+      message: 'User signup successful',
       data: savedUser,
     };
   }
@@ -99,12 +99,12 @@ export class UserService {
       where: { email: email.toLowerCase() },
     });
     if (!user) {
-      throw new NotFoundException("User does not exist.");
+      throw new NotFoundException('User does not exist.');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new HttpException("Invalid Password", HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid Password', HttpStatus.UNAUTHORIZED);
     }
 
     delete user.password;
@@ -113,7 +113,7 @@ export class UserService {
 
     return {
       statusCode: 200,
-      message: "Login successful",
+      message: 'Login successful',
       access_token,
       data: user,
     };
@@ -124,12 +124,12 @@ export class UserService {
   ): Promise<{ message: string; data?: User; statusCode: number }> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
     delete user.password;
     return {
       statusCode: HttpStatus.OK,
-      message: "User found successfully.",
+      message: 'User found successfully.',
       data: user,
     };
   }
@@ -142,7 +142,7 @@ export class UserService {
     const users = await this.userRepository.find();
     return {
       statusCode: HttpStatus.OK,
-      message: "User list retrieved successfully.",
+      message: 'User list retrieved successfully.',
       data: users,
     };
   }
@@ -166,7 +166,7 @@ export class UserService {
 
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
     Object.assign(user, { ...userData, email: userData.email?.toLowerCase() });
@@ -186,7 +186,7 @@ export class UserService {
 
     return {
       statusCode: HttpStatus.OK,
-      message: "User profile updated successfully",
+      message: 'User profile updated successfully',
       data: updatedUser,
     };
   }
@@ -196,11 +196,11 @@ export class UserService {
   ): Promise<{ message: string; statusCode: number }> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
     await this.userRepository.delete(id);
-    return { statusCode: HttpStatus.OK, message: "User deleted successfully" };
+    return { statusCode: HttpStatus.OK, message: 'User deleted successfully' };
   }
 
   async forgotPassword(email: string) {
@@ -208,17 +208,17 @@ export class UserService {
       where: { email: email.toLowerCase() },
     });
     if (!user) {
-      throw new NotFoundException("User not found");
+      throw new NotFoundException('User not found');
     }
 
     // Generate reset token (valid for 1 hour)
     const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: '1h',
     });
 
     // Send reset password email
     await this.mailSender.sendResetPasswordEmail(email, token);
-    return { message: "Reset password email sent" };
+    return { message: 'Reset password email sent' };
   }
 
   async resetPassword(token: string, newPassword: string) {
@@ -229,7 +229,7 @@ export class UserService {
       });
 
       if (!user) {
-        throw new NotFoundException("Invalid token or user not found");
+        throw new NotFoundException('Invalid token or user not found');
       }
 
       // Hash new password
@@ -238,9 +238,9 @@ export class UserService {
 
       // Save updated user
       await this.userRepository.save(user);
-      return { message: "Password reset successful" };
+      return { message: 'Password reset successful' };
     } catch (error) {
-      throw new BadRequestException("Invalid or expired token");
+      throw new BadRequestException('Invalid or expired token');
     }
   }
 }

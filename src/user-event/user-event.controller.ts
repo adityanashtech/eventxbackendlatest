@@ -7,23 +7,23 @@ import {
   UseGuards,
   Query,
   BadRequestException,
-} from "@nestjs/common";
-import * as Joi from "joi";
-import { UserEventService } from "./user-event.service";
+} from '@nestjs/common';
+import * as Joi from 'joi';
+import { UserEventService } from './user-event.service';
 import {
   registerUserToEventSwagger,
   getUserEventsSwagger,
   getEventUsersSwagger,
-} from "./user-event.swagger";
-import { AuthGuard } from "../user/guards/auth.guard";
+} from './user-event.swagger';
+import { AuthGuard } from '../user/guards/auth.guard';
 
-@Controller("user-event")
+@Controller('user-event')
 @UseGuards(AuthGuard)
 export class UserEventController {
   constructor(private readonly userEventService: UserEventService) {}
 
   @registerUserToEventSwagger()
-  @Post("register")
+  @Post('register')
   async registerUserToEvent(
     @Body() body: { user_id: number; event_id: number }
   ) {
@@ -47,21 +47,21 @@ export class UserEventController {
   }
 
   @getUserEventsSwagger()
-  @Get("user/:user_id")
+  @Get('user/:user_id')
   async getUserEvents(
-    @Param("user_id") userId: string,
-    @Query("status") status?: "ongoing" | "past" | "upcoming" | "all"
+    @Param('user_id') userId: string,
+    @Query('status') status?: 'ongoing' | 'past' | 'upcoming' | 'all'
   ) {
     const schema = Joi.object({
       user_id: Joi.number().required(),
       status: Joi.string()
-        .valid("ongoing", "past", "upcoming", "all")
-        .default("all"),
+        .valid('ongoing', 'past', 'upcoming', 'all')
+        .default('all'),
     });
 
     const { error, value } = schema.validate({
       user_id: userId,
-      status: status || "all",
+      status: status || 'all',
     });
 
     if (error) {
@@ -72,8 +72,8 @@ export class UserEventController {
   }
 
   @getEventUsersSwagger()
-  @Get("event/:event_id")
-  async getEventUsers(@Param("event_id") eventId: string) {
+  @Get('event/:event_id')
+  async getEventUsers(@Param('event_id') eventId: string) {
     const schema = Joi.object({
       event_id: Joi.number().required(),
     });
